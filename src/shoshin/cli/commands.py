@@ -28,7 +28,7 @@ def convert(video_file: str, output: str):
     try:
         utils.extract_audio(video_file, output)
     except Error as e:
-        raise click.ClickException(f"Error occurred during audio extraction: {e.stderr.decode()}")
+        raise click.ClickException(f"Error occurred during audio extraction: {e}")
 
     click.echo(f"Audio extracted to: {output}")
 
