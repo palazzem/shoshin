@@ -1,12 +1,12 @@
 import click
 import ffmpeg
 import openai
+from ffmpeg import Error
 
 
 def extract_audio(video_file: str, output_file: str) -> None:
-    """
-    Extracts the audio from a video file and saves it as an MP3 file. Audio is downsampled to 16kHz
-    as it is only used for speech recognition.
+    """Extracts the audio from a video file and saves it as an MP3 file. Audio is
+    downsampled to 16kHz as it is only used for speech recognition.
 
     TODO: use `pydub` to split on silence if lenght is > 25MB (Whisper API limit)
 
@@ -15,14 +15,17 @@ def extract_audio(video_file: str, output_file: str) -> None:
         output_file (str): The path to save the output MP3 file.
 
     Raises:
-        subprocess.CalledProcessError: If the FFmpeg command fails.
+        click.ClickException: If an error occurs during audio extraction.
 
     Returns:
         None
     """
-    stream = ffmpeg.input(video_file)
-    stream = ffmpeg.output(stream.audio, output_file, format="mp3", ar=16000)
-    ffmpeg.run(stream, overwrite_output=False)
+    try:
+        stream = ffmpeg.input(video_file)
+        stream = ffmpeg.output(stream.audio, output_file, format="mp3", ar=16000)
+        ffmpeg.run(stream, overwrite_output=False)
+    except Error as e:
+        raise click.ClickException(f"Error occurred during audio extraction: {e}")
 
 
 def speech_to_text(audio_file: str) -> str:
