@@ -35,15 +35,24 @@ def convert(video_file: str, output: str):
 
 @cli.command()
 @click.argument("audio_file")
-def transcribe(audio_file: str):
+@click.option("--output", help="Output file name (default: <video_file>.txt)")
+def transcribe(audio_file: str, output: str):
     _, ext = os.path.splitext(audio_file)
     ext = ext.lower()
-
     if ext != ".mp3":
         raise ValueError(f"Unsupported file type {ext}. Only .mp3 audio files are supported.")
 
-    result = utils.speech_to_text(audio_file)
-    click.echo(result)
+    # If no output file name is provided, use the video file name with an MP3 extension.
+    if output is None:
+        output = Path(audio_file).stem + ".txt"
+
+    transcription = utils.speech_to_text(audio_file)
+
+    # Save the transcription to a file.
+    with open(output, "w") as f:
+        f.write(transcription)
+
+    click.echo(f"Audio transcript saved in: {output}")
 
 
 if __name__ == "__main__":
