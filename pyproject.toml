@@ -45,7 +45,7 @@ all = [
 ]
 
 [project.scripts]
-shoshin = "shoshin.cli:cli"
+shoshin = "shoshin.cli.commands:cli"
 
 [project.urls]
 Documentation = "https://github.com/palazzem/shoshin#readme"
