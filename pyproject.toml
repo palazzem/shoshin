@@ -26,6 +26,7 @@ classifiers = [
 ]
 dependencies = [
   "click",
+  "ffmpeg-python",
 ]
 
 [project.optional-dependencies]

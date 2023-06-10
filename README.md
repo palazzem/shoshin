@@ -10,6 +10,7 @@ Project is under development.
 ## Requirements
 
 - Python 3.11
+- `ffmpeg` (for video to audio processing)
 
 ## Development
 
