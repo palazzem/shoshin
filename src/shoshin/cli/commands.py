@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import click
-from ffmpeg import Error
 
 from shoshin.cli import utils
 
@@ -25,12 +24,8 @@ def convert(video_file: str, output: str):
     if output is None:
         output = Path(video_file).stem + ".mp3"
 
-    try:
-        utils.extract_audio(video_file, output)
-    except Error as e:
-        raise click.ClickException(f"Error occurred during audio extraction: {e}")
-
-    click.echo(f"Audio extracted to: {output}")
+    utils.extract_audio(video_file, output)
+    click.echo(f"Audio track converted to: {output}")
 
 
 @cli.command()
