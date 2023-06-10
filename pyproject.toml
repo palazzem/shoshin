@@ -24,7 +24,10 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "click",
+  "ffmpeg-python",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -40,6 +43,9 @@ dev = [
 all = [
   "shoshin[dev]",
 ]
+
+[project.scripts]
+shoshin = "shoshin.cli.commands:cli"
 
 [project.urls]
 Documentation = "https://github.com/palazzem/shoshin#readme"
