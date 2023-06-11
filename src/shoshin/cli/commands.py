@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 
 import click
+from haystack.nodes import PreProcessor
+from haystack.utils import convert_files_to_docs
+from milvus_documentstore import MilvusDocumentStore
 
 from shoshin.cli import utils
 
@@ -48,6 +51,33 @@ def transcribe(audio_file: str, output: str):
         f.write(transcription)
 
     click.echo(f"Audio transcript saved in: {output}")
+
+
+@cli.command()
+@click.argument("transcriptions_folder")
+@click.option("--language", default="en", help="Language of the transcriptions (default: en)")
+def embeddings_load(transcriptions_folder: str, language: str):
+    # Convert transcriptions to Haystack documents
+    all_docs = convert_files_to_docs(dir_path=transcriptions_folder)
+    click.echo("Transcriptions folder loaded into memory...")
+
+    # Preprocess documents using the selected language
+    preprocessor = PreProcessor(
+        language=language,
+        clean_empty_lines=True,
+        clean_whitespace=True,
+        clean_header_footer=False,
+        split_by="word",
+        split_length=100,
+        split_respect_sentence_boundary=True,
+    )
+    documents = preprocessor.process(all_docs)
+
+    # Write documents into Document Store
+    ds = MilvusDocumentStore()
+    click.echo("Indexing data into Vector Database...")
+    ds.write_documents(documents)
+    click.echo("Documents loaded into Vector Database (index only).")
 
 
 if __name__ == "__main__":
