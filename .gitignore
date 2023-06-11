@@ -2,6 +2,7 @@
 video/
 audio/
 transcriptions/
+volumes/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
