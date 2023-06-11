@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import click
-from haystack.nodes import PreProcessor
+from haystack.nodes import EmbeddingRetriever, PreProcessor
 from haystack.utils import convert_files_to_docs
 from milvus_documentstore import MilvusDocumentStore
 
@@ -58,8 +58,8 @@ def transcribe(audio_file: str, output: str):
 @click.option("--language", default="en", help="Language of the transcriptions (default: en)")
 def embeddings_load(transcriptions_folder: str, language: str):
     # Convert transcriptions to Haystack documents
+    click.echo("Loading transcriptions into memory...")
     all_docs = convert_files_to_docs(dir_path=transcriptions_folder)
-    click.echo("Transcriptions folder loaded into memory...")
 
     # Preprocess documents using the selected language
     preprocessor = PreProcessor(
@@ -74,10 +74,21 @@ def embeddings_load(transcriptions_folder: str, language: str):
     documents = preprocessor.process(all_docs)
 
     # Write documents into Document Store
-    ds = MilvusDocumentStore()
-    click.echo("Indexing data into Vector Database...")
+    # NOTE: `text-embedding-ada-002` has an output dimension of 1536
+    ds = MilvusDocumentStore(embedding_dim=1536)
     ds.write_documents(documents)
-    click.echo("Documents loaded into Vector Database (index only).")
+    docs = ds.get_all_documents()
+    click.echo(f"Documents loaded into Vector Database: {len(docs)}")
+
+    # Update embeddings through OpenAI embedding model
+    retriever = EmbeddingRetriever(
+        document_store=ds,
+        embedding_model="text-embedding-ada-002",
+        model_format="openai",
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
+    ds.update_embeddings(retriever)
+    click.echo("Embeddings updated!")
 
 
 if __name__ == "__main__":
