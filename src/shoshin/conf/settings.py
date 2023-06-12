@@ -6,10 +6,10 @@ from pysettings.options import Option
 class Settings(BaseSettings):
     """Shoshin settings"""
 
-    DATABASE_URL = Option(default="sqlite:///db.sqlite3", not_null=True)
-    DEFAULT_LANGUAGE = Option(default="en", not_null=True)
-    OPENAI_API_KEY = Option(not_null=True)
-    PROMPT_MAX_TOKENS = Option(default=2048, not_null=True)
+    DATABASE_URL = Option(default="sqlite:///db.sqlite3", allow_null=False)
+    DEFAULT_LANGUAGE = Option(default="en", allow_null=False)
+    OPENAI_API_KEY = Option(allow_null=False)
+    PROMPT_MAX_TOKENS = Option(default=2048, allow_null=False)
 
 
 # Take environment variables from `.env` file
