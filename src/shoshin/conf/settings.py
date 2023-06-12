@@ -1,5 +1,4 @@
-import os
-
+from dotenv import dotenv_values
 from pysettings.base import BaseSettings
 from pysettings.options import Option
 
@@ -13,10 +12,13 @@ class Settings(BaseSettings):
     PROMPT_MAX_TOKENS = Option(default=2048, not_null=True)
 
 
-# Get values from environment variables
+# Take environment variables from `.env` file
+env_config = dotenv_values(".env")
+
+# Update settings with environment variables
 settings = Settings()
-settings.DATABASE_URL = os.getenv("SHOSHIN_DATABASE_URL", settings.DATABASE_URL)
-settings.DEFAULT_LANGUAGE = os.getenv("SHOSHIN_DEFAULT_LANGUAGE", settings.DEFAULT_LANGUAGE)
-settings.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-settings.PROMPT_MAX_TOKENS = os.getenv("SHOSHIN_PROMPT_MAX_TOKENS", settings.PROMPT_MAX_TOKENS)
+for attr, value in env_config.items():
+    settings[attr] = value
+
+# Validate settings
 settings.is_valid()
