@@ -38,9 +38,10 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  convert      Converts video files to audio
-  transcribe   Transcribes audio files to text
-  query        Create a question about indexed documents
+  convert            Converts video files to audio
+  transcribe         Transcribes audio files to text
+  embeddings-load    Compute embeddings for all documents in a folder and load them into Milvus
+  query              Create a question about indexed documents
 ```
 
 #### Examples of usage:
@@ -54,14 +55,18 @@ $ shoshin convert video/lesson01.mp4 --output audio/lesson01.mp3
 # Transcribe an audio file to a text file
 $ shoshin transcribe audio/lesson01.mp3 --output text/lesson01.txt
 
+# Load all documents in a folder into Milvus vector database
+$ shoshin embeddings-load --language en transcriptions/
+
 # Ask questions to the LLM that will be answered from the documents stored
 $ shoshin query "What are the ethical implications of AI?"
 ```
 
-In the examples above, the `convert` command extracts the audio from the specified video, while the `transcribe` command
-generates a text transcription from an audio file. The `--output` option indicates where the resulting file should be saved.
-The `query` command asks a question to the LLM model, which will be answered from the documents stored in the Milvus vector
-database. The LLM prompt is instructed to use only indexed documents and not their training model.
+The LLM prompt is instructed to use only indexed documents and not their knowledge base to avoid going off-track
+from the video lessons.
+
+During the `embeddings-load` is important to select a language via `--language` to ensure a better word split is done
+for every document. Check [Haystack documentation](https://docs.haystack.deepset.ai/docs/languages) for more details.
 
 ## Development
 
