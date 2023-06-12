@@ -7,6 +7,8 @@ openness, eagerness, and lack of preconceptions, just as a beginner would.
 
 - Python 3.11
 - `ffmpeg` (for video to audio processing)
+- `sqlite3` (for storing documents metadata - this dependency will be replaced with a `postgresql` database in the future)
+- `docker` and `docker compose` (for running Milvus vector database)
 
 ## Status
 
@@ -36,8 +38,10 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  convert      Converts video files to audio
-  transcribe   Transcribes audio files to text
+  convert            Converts video files to audio
+  transcribe         Transcribes audio files to text
+  embeddings-load    Compute embeddings for all documents in a folder and load them into Milvus
+  query              Create a question about indexed documents
 ```
 
 #### Examples of usage:
@@ -50,10 +54,19 @@ $ shoshin convert video/lesson01.mp4 --output audio/lesson01.mp3
 
 # Transcribe an audio file to a text file
 $ shoshin transcribe audio/lesson01.mp3 --output text/lesson01.txt
+
+# Load all documents in a folder into Milvus vector database
+$ shoshin embeddings-load --language en transcriptions/
+
+# Ask questions to the LLM that will be answered from the documents stored
+$ shoshin query "What are the ethical implications of AI?"
 ```
 
-In the examples above, the `convert` command extracts the audio from the specified video, while the `transcribe` command
-generates a text transcription from an audio file. The `--output` option indicates where the resulting file should be saved.
+The LLM prompt is instructed to use only indexed documents and not their knowledge base to avoid going off-track
+from the video lessons.
+
+During the `embeddings-load` is important to select a language via `--language` to ensure a better word split is done
+for every document. Check [Haystack documentation](https://docs.haystack.deepset.ai/docs/languages) for more details.
 
 ## Development
 
@@ -73,10 +86,17 @@ source venv/bin/activate
 # Upgrade pip and install all projects and their dependencies
 pip install --upgrade pip
 pip install -e '.[dev]'
+
+# Install pre-commit hooks
+pre-commit install
+
+# Create folders and initial database to store documents metadata
+mkdir -p audio video transcriptions volumes
+sqlite3 db.sqlite3 "VACUUM;"
 ```
 
-Finally, install the pre-commit hooks:
+Finally, start required services to run Milvus vector database:
 
 ```bash
-pre-commit install
+docker-compose up -d
 ```

@@ -28,6 +28,8 @@ dependencies = [
   "click",
   "ffmpeg-python",
   "openai",
+  "farm-haystack",
+  "milvus-documentstore@git+https://github.com/deepset-ai/haystack-extras.git#egg=milvus_documentstore&subdirectory=stores/milvus-documentstore",
 ]
 
 [project.optional-dependencies]
@@ -55,3 +57,6 @@ Source = "https://github.com/palazzem/shoshin"
 
 [tool.hatch.version]
 path = "src/shoshin/__about__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
