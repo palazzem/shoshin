@@ -18,7 +18,7 @@ env_config = dotenv_values(".env")
 # Update settings with environment variables
 settings = Settings()
 for attr, value in env_config.items():
-    settings[attr] = value
+    setattr(settings, attr, value)
 
 # Validate settings
 settings.is_valid()
