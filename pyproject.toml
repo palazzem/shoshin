@@ -31,6 +31,7 @@ dependencies = [
   "milvus-documentstore@git+https://github.com/deepset-ai/haystack-extras.git#egg=milvus_documentstore&subdirectory=stores/milvus-documentstore",
   "openai",
   "pysettings-validator",
+  "python-dotenv",
 ]
 
 [project.optional-dependencies]
