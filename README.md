@@ -16,6 +16,7 @@ openness, eagerness, and lack of preconceptions, just as a beginner would.
 ## Status
 
 Project is under development. Installation requires to clone the repository and install the project in editable mode.
+Follow the instructions in the [Development](#development) section.
 
 ## Getting Started
 
