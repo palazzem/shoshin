@@ -22,14 +22,6 @@ Project is under development. Installation requires to clone the repository and 
 This open-source project provides a Command-Line Interface (CLI) application, `shoshin`, dedicated to processing video files.
 It leverages external APIs, thus requiring certain environment variables to be configured.
 
-### Pre-requisites
-
-Set up the necessary environment variables as follows:
-
-```bash
-OPENAI_API_KEY=<insert-your-openai-api-key-here>
-```
-
 ### Using the `shoshin` CLI
 
 The `shoshin` command enables various video processing operations:
@@ -96,6 +88,17 @@ pre-commit install
 # Create folders and initial database to store documents metadata
 mkdir -p audio video transcriptions volumes
 sqlite3 db.sqlite3 "VACUUM;"
+
+# Set required environment variables
+cp env.development .env
+```
+
+Set up the necessary environment variables in the newly created `.env` file. All variables in there are required
+for the project to run. You can see all available settings in the `shoshin/conf/settings.py` module.
+
+Example of a `.env`` file:
+```bash
+OPENAI_API_KEY=<insert-your-openai-api-key-here>
 ```
 
 Finally, start required services to run Milvus vector database:
