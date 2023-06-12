@@ -1,5 +1,8 @@
 # Shoshin
 
+[![Linting](https://github.com/palazzem/shoshin/actions/workflows/linting.yaml/badge.svg)](https://github.com/palazzem/shoshin/actions/workflows/linting.yaml)
+[![Testing](https://github.com/palazzem/shoshin/actions/workflows/testing.yaml/badge.svg)](https://github.com/palazzem/shoshin/actions/workflows/testing.yaml)
+
 Conversational AI that gets context from a video course and provides teaching support to students, with an attitude of
 openness, eagerness, and lack of preconceptions, just as a beginner would.
 
