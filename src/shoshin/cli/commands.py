@@ -8,6 +8,8 @@ from haystack.utils import convert_files_to_docs
 from milvus_documentstore import MilvusDocumentStore
 
 from shoshin.cli import utils
+from shoshin.conf import constants as c
+from shoshin.conf import settings as s
 
 
 @click.group()
@@ -34,7 +36,7 @@ def convert(video_file: str, output: str):
 
 @cli.command()
 @click.argument("audio_file")
-@click.option("--output", help="Output file name (default: <video_file>.txt)")
+@click.option("--output", help="Output file name (default: <audio_file>.txt)")
 def transcribe(audio_file: str, output: str):
     _, ext = os.path.splitext(audio_file)
     ext = ext.lower()
@@ -56,7 +58,9 @@ def transcribe(audio_file: str, output: str):
 
 @cli.command()
 @click.argument("transcriptions_folder")
-@click.option("--language", default="en", help="Language of the transcriptions (default: en)")
+@click.option(
+    "--language", default=s.DEFAULT_LANGUAGE, help=f"Language of the transcriptions (default: {s.DEFAULT_LANGUAGE})"
+)
 def embeddings_load(transcriptions_folder: str, language: str):
     # Convert transcriptions to Haystack documents
     click.echo("Loading transcriptions into memory...")
@@ -69,23 +73,22 @@ def embeddings_load(transcriptions_folder: str, language: str):
         clean_whitespace=True,
         clean_header_footer=False,
         split_by="word",
-        split_length=100,
+        split_length=c.PREPROCESSOR_SPLIT_LENGTH,
         split_respect_sentence_boundary=True,
     )
     documents = preprocessor.process(all_docs)
 
     # Write documents into Document Store
     # NOTE: `text-embedding-ada-002` has an output dimension of 1536
-    ds = MilvusDocumentStore(embedding_dim=1536, sql_url="sqlite:///db.sqlite3")
+    ds = MilvusDocumentStore(embedding_dim=c.EMBEDDING_DIM, sql_url=s.DATABASE_URL)
     ds.write_documents(documents)
     click.echo(f"Documents loaded into the Vector Database: {len(documents)}")
 
     # Update embeddings through OpenAI embedding model
     retriever = EmbeddingRetriever(
         document_store=ds,
-        embedding_model="text-embedding-ada-002",
-        model_format="openai",
-        api_key=os.getenv("OPENAI_API_KEY"),
+        embedding_model=c.EMBEDDING_MODEL,
+        api_key=s.OPENAI_API_KEY,
     )
     ds.update_embeddings(retriever)
     click.echo("Embeddings updated!")
@@ -94,14 +97,13 @@ def embeddings_load(transcriptions_folder: str, language: str):
 @cli.command()
 @click.argument("question")
 def query(question: str):
-    ds = MilvusDocumentStore(embedding_dim=1536, sql_url="sqlite:///db.sqlite3")
+    ds = MilvusDocumentStore(embedding_dim=c.EMBEDDING_DIM, sql_url=s.DATABASE_URL)
 
     # Retriever
     retriever = EmbeddingRetriever(
         document_store=ds,
-        embedding_model="text-embedding-ada-002",
-        model_format="openai",
-        api_key=os.getenv("OPENAI_API_KEY"),
+        embedding_model=c.EMBEDDING_MODEL,
+        api_key=s.OPENAI_API_KEY,
     )
 
     # Prompt
@@ -116,14 +118,14 @@ def query(question: str):
                        \n\n Related text: {join(documents)} \n\n Question: {query} \n\n Answer:""",
     )
     prompt_node = PromptNode(
-        model_name_or_path="gpt-3.5-turbo",
-        api_key=os.getenv("OPENAI_API_KEY"),
+        model_name_or_path=c.LLM_MODEL,
+        api_key=s.OPENAI_API_KEY,
         default_prompt_template=lfqa_prompt,
-        max_length=2048,
+        max_length=s.PROMPT_MAX_TOKENS,
     )
     pipeline = GenerativeQAPipeline(generator=prompt_node, retriever=retriever)
 
-    output = pipeline.run(query=question, params={"Retriever": {"top_k": 10}})
+    output = pipeline.run(query=question, params={"Retriever": {"top_k": c.RETRIEVER_TOP_K}})
     print(output["results"])
 
 
