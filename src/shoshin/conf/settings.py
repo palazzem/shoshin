@@ -1,3 +1,5 @@
+import os
+
 from dotenv import dotenv_values
 from pysettings.base import BaseSettings
 from pysettings.options import Option
@@ -13,7 +15,8 @@ class Settings(BaseSettings):
 
 
 # Take environment variables from `.env` file
-env_config = dotenv_values(".env")
+env_file = os.environ.get("SHOSHIN_ENV_FILE", ".env")
+env_config = dotenv_values(env_file)
 
 # Update settings with environment variables
 settings = Settings()
