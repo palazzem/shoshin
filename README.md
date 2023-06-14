@@ -91,7 +91,7 @@ mkdir -p audio video transcriptions volumes
 sqlite3 db.sqlite3 "VACUUM;"
 
 # Set required environment variables
-cp env.development .env
+cp .env.development .env
 ```
 
 Set up the necessary environment variables in the newly created `.env` file. All variables in there are required
