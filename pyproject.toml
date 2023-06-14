@@ -30,7 +30,7 @@ dependencies = [
   "ffmpeg-python",
   "milvus-documentstore@git+https://github.com/deepset-ai/haystack-extras.git#egg=milvus_documentstore&subdirectory=stores/milvus-documentstore",
   "openai",
-  "pysettings-validator",
+  "pydantic",
   "python-dotenv",
 ]
 
