@@ -16,3 +16,14 @@ def settings():
     previous_settings = global_settings.dict()
     yield global_settings
     global_settings.__dict__.update(previous_settings)
+
+
+@pytest.fixture(scope="function")
+def ffmpeg(mocker):
+    """
+    Fixture that mocks the `ffmpeg` module for testing purposes.
+
+    Returns:
+        The mocked `ffmpeg` module.
+    """
+    return mocker.patch("shoshin.pipeline.processors.ffmpeg")

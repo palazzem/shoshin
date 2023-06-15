@@ -10,6 +10,8 @@ from milvus_documentstore import MilvusDocumentStore
 from shoshin.cli import utils
 from shoshin.conf import constants as c
 from shoshin.conf import settings as s
+from shoshin.exceptions import AudioExtractionError
+from shoshin.pipeline import processors
 
 
 @click.group()
@@ -30,7 +32,11 @@ def convert(video_file: str, output: str):
     if output is None:
         output = Path(video_file).stem + ".mp3"
 
-    utils.extract_audio(video_file, output)
+    try:
+        processors.extract_audio_from_video(video_file, output)
+    except AudioExtractionError as e:
+        raise click.ClickException(e)
+
     click.echo(f"Audio track converted to: {output}")
 
 
