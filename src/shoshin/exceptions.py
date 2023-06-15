@@ -1,3 +1,5 @@
+from ffmpeg import Error as FFMpegError
+
 from .__about__ import __version__ as VERSION
 
 _TROUBLESHOOTING_DOCS_URL = f"https://github.com/palazzem/shoshin/wiki/{VERSION}-"
@@ -36,3 +38,11 @@ class TroubleshootingExceptionMixin:
 
 class ShoshinException(TroubleshootingExceptionMixin, Exception):
     """A generic exception raised within the Shoshin application."""
+
+
+class AudioExtractionError(ShoshinException):
+    """An exception raised when an error occurs during audio extraction."""
+
+    def __init__(self, original_exception: FFMpegError):
+        self.original_exception = original_exception
+        super().__init__(f"Error occurred during audio extraction: {original_exception}")
