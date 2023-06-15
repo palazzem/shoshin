@@ -10,7 +10,6 @@ openness, eagerness, and lack of preconceptions, just as a beginner would.
 
 - Python 3.11
 - `ffmpeg` (for video to audio processing)
-- `sqlite3` (for storing documents metadata - this dependency will be replaced with a `postgresql` database in the future)
 - `docker` and `docker compose` (for running Milvus vector database)
 
 ## Status
@@ -88,7 +87,6 @@ pre-commit install
 
 # Create folders and initial database to store documents metadata
 mkdir -p audio video transcriptions volumes
-sqlite3 db.sqlite3 "VACUUM;"
 
 # Set required environment variables
 cp .env.development .env
@@ -97,12 +95,12 @@ cp .env.development .env
 Set up the necessary environment variables in the newly created `.env` file. All variables in there are required
 for the project to run. You can see all available settings in the `shoshin/conf/settings.py` module.
 
-Example of a `.env`` file:
+Example of a `.env` file:
 ```bash
 OPENAI_API_KEY=<insert-your-openai-api-key-here>
 ```
 
-Finally, start required services to run Milvus vector database:
+Finally, start required services to run Milvus vector database and PostgreSQL:
 
 ```bash
 docker-compose up -d
