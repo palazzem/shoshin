@@ -7,10 +7,9 @@ from haystack.pipelines import GenerativeQAPipeline
 from haystack.utils import convert_files_to_docs
 from milvus_documentstore import MilvusDocumentStore
 
-from shoshin.cli import utils
 from shoshin.conf import constants as c
 from shoshin.conf import settings as s
-from shoshin.exceptions import AudioExtractionError
+from shoshin.exceptions import AIError, AudioExtractionError
 from shoshin.pipeline import processors
 
 
@@ -53,11 +52,11 @@ def transcribe(audio_file: str, output: str):
     if output is None:
         output = Path(audio_file).stem + ".txt"
 
-    transcription = utils.speech_to_text(audio_file)
-
     # Save the transcription to a file.
-    with open(output, "w") as f:
-        f.write(transcription)
+    try:
+        processors.transcribe_speech_to_text(audio_file, output)
+    except AIError as e:
+        raise click.ClickException(e)
 
     click.echo(f"Audio transcript saved in: {output}")
 

@@ -1,8 +1,14 @@
 import pytest
+import requests
+import responses
 from ffmpeg import Error as FFMpegError
+from openai import error
 
-from shoshin.exceptions import AudioExtractionError
-from shoshin.pipeline.processors import extract_audio_from_video
+from shoshin.exceptions import AIError, AudioExtractionError
+from shoshin.pipeline.processors import (
+    extract_audio_from_video,
+    transcribe_speech_to_text,
+)
 
 
 def test_extract_audio_from_video(ffmpeg):
@@ -20,3 +26,180 @@ def test_extract_audio_from_video_exception(ffmpeg):
         extract_audio_from_video("video.mp4", "audio.mp3")
 
     assert e.value.original_exception.args == ("ffmpeg error (see stderr output for detail)",)
+
+
+def test_transcribe_speech_to_text(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text calls the OpenAI API correctly.
+    headers = {
+        "Date": "Mon, 01 Jan 2023 12:00:00 GMT",
+        "Content-Type": "application/json",
+        "Connection": "keep-alive",
+        "openai-organization": "user-test",
+        "openai-processing-ms": "100",
+        "openai-version": "2020-10-01",
+        "strict-transport-security": "max-age=15724800; includeSubDomains",
+        "x-ratelimit-limit-requests": "50",
+        "x-ratelimit-remaining-requests": "49",
+        "x-ratelimit-reset-requests": "1.2s",
+        "x-request-id": "<redacted>",
+        "CF-Cache-Status": "DYNAMIC",
+        "Server": "cloudflare",
+        "CF-RAY": "<redacted>",
+        "alt-svc": 'h3=":443"; ma=86400',
+    }
+    response = {"text": "Thanks for watching!"}
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=response,
+        headers=headers,
+        status=200,
+    )
+    # Test
+    transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert output_file.read_text() == "Thanks for watching!"
+
+
+def test_transcribe_speech_to_text_not_found(output_file):
+    # Ensure transcribe_speech_to_text raises FileNotFound error if no audio file is found.
+    with pytest.raises(FileNotFoundError):
+        transcribe_speech_to_text("audio.mp3", output_file)
+
+
+def test_transcribe_speech_to_text_error_timeout(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        body=requests.exceptions.Timeout("<reason>"),
+        status=408,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.Timeout)
+
+
+def test_transcribe_speech_to_text_error_api_connection_error(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        body=requests.exceptions.RequestException("<reason>"),
+        status=500,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.APIConnectionError)
+
+
+def test_transcribe_speech_to_text_error_api_error(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    response = "bad-parsing"
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=response,
+        status=400,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.APIError)
+
+
+def test_transcribe_speech_to_text_error_invalid_request(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    error_msg = {
+        "error": {
+            "code": 400,
+            "message": "<reason>",
+            "type": "invalid_request_error",
+            "param": "something",
+        }
+    }
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=error_msg,
+        status=400,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.InvalidRequestError)
+
+
+def test_transcribe_speech_to_text_error_authentication(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    error_msg = {
+        "error": {
+            "code": 401,
+            "message": "AuthError",
+            "type": "authentication_error",
+            "param": "something",
+        }
+    }
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=error_msg,
+        status=401,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.AuthenticationError)
+
+
+def test_transcribe_speech_to_text_error_permission(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    error_msg = {
+        "error": {
+            "code": 403,
+            "message": "PermissionError",
+            "type": "permission_error",
+            "param": "something",
+        }
+    }
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=error_msg,
+        status=403,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.PermissionError)
+
+
+def test_transcribe_speech_to_text_error_rate_limit(server, audio_file, output_file):
+    # Ensure transcribe_speech_to_text handles OpenAI API errors.
+    error_msg = {
+        "error": {
+            "code": 429,
+            "message": "RateLimit",
+            "type": "permission_error",
+            "param": "something",
+        }
+    }
+    server.add(
+        responses.POST,
+        "https://api.openai.com/v1/audio/transcriptions",
+        json=error_msg,
+        status=429,
+    )
+    # Test
+    with pytest.raises(AIError) as e:
+        transcribe_speech_to_text(audio_file, output_file)
+    # Check
+    assert isinstance(e.value.original_exception, error.RateLimitError)
