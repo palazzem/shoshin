@@ -1,4 +1,5 @@
 from ffmpeg import Error as FFMpegError
+from openai.error import OpenAIError
 
 from .__about__ import __version__ as VERSION
 
@@ -46,3 +47,13 @@ class AudioExtractionError(ShoshinException):
     def __init__(self, original_exception: FFMpegError):
         self.original_exception = original_exception
         super().__init__(f"Error occurred during audio extraction: {original_exception}")
+
+
+class AIError(ShoshinException):
+    """This exception is raised when errors are returned by OpenAI APIs. The base class for all
+    OpenAI API errors, OpenAIError, is wrapped by this exception.
+    """
+
+    def __init__(self, original_exception: OpenAIError):
+        self.original_exception = original_exception
+        super().__init__(f"Error occurred when using OpenAI LLM: {original_exception}")

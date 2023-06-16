@@ -1,5 +1,9 @@
 from shoshin.__about__ import __version__ as VERSION
-from shoshin.exceptions import AudioExtractionError, TroubleshootingExceptionMixin
+from shoshin.exceptions import (
+    AIError,
+    AudioExtractionError,
+    TroubleshootingExceptionMixin,
+)
 
 
 def test_troubleshooting_exception_mixin_with_code():
@@ -31,3 +35,13 @@ def test_audio_extraction_exception():
     assert exception.original_exception is error
     assert exception.code is None
     assert str(exception) == "Error occurred during audio extraction: Original exception"
+
+
+def test_ai_error():
+    # Ensure AIError wraps the original exception.
+    error = Exception("Original exception")
+    exception = AIError(error)
+    # Check
+    assert exception.original_exception is error
+    assert exception.code is None
+    assert str(exception) == "Error occurred when using OpenAI LLM: Original exception"
