@@ -1,5 +1,6 @@
 import os
 
+from dotenv import load_dotenv
 from pydantic import BaseSettings
 
 
@@ -15,4 +16,6 @@ class Settings(BaseSettings):
         env_file = os.environ.get("SHOSHIN_ENV_FILE", ".env")
 
 
+# Load environment variables and initialize settings
+load_dotenv(Settings.Config.env_file, override=True)
 settings = Settings()
