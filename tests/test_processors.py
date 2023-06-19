@@ -6,6 +6,7 @@ from openai import error
 
 from shoshin.exceptions import AIError, AudioExtractionError
 from shoshin.pipeline.processors import (
+    clean_documents,
     extract_audio_from_video,
     transcribe_speech_to_text,
 )
@@ -203,3 +204,33 @@ def test_transcribe_speech_to_text_error_rate_limit(server, audio_file, output_f
         transcribe_speech_to_text(audio_file, output_file)
     # Check
     assert isinstance(e.value.original_exception, error.RateLimitError)
+
+
+def test_clean_documents_success(document):
+    # Ensure clean_documents returns a list of cleaned Documents
+    document.content = "   This is an uncleaned statement. \n\n"
+    # Test
+    documents = clean_documents([document], "en", progress_bar=False)
+    # Check
+    assert len(documents) == 1
+    assert documents[0].content == "This is an uncleaned statement."
+
+
+def test_clean_documents_split(document):
+    # Ensure clean_documents returns a multiple documents if the content is too long
+    document.content = """
+        This is a sample sentence in paragraph_1. This is a sample sentence in paragraph_1. This is a sample sentence in
+        paragraph_1. This is a sample sentence in paragraph_1. This is a sample sentence in paragraph_1.\f
+
+        This is a sample sentence in paragraph_2. This is a sample sentence in paragraph_2. This is a sample sentence in
+        paragraph_2. This is a sample sentence in paragraph_2. This is a sample sentence in paragraph_2.
+
+        This is a sample sentence in paragraph_3. This is a sample sentence in paragraph_3. This is a sample sentence in
+        paragraph_3. This is a sample sentence in paragraph_3. This is to trick the test with using an abbreviation\f
+        like Dr. in the sentence."""
+    # Test
+    documents = clean_documents([document], "en", progress_bar=False)
+    # Check
+    assert len(documents) == 2
+    assert documents[0].meta["_split_id"] == 0
+    assert documents[1].meta["_split_id"] == 1

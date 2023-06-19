@@ -1,5 +1,6 @@
 import pytest
 import responses
+from haystack.schema import Document
 
 from shoshin.conf import settings as global_settings
 
@@ -47,3 +48,22 @@ def audio_file(tmp_path_factory):
 @pytest.fixture(scope="session")
 def output_file(tmp_path_factory):
     yield tmp_path_factory.mktemp("output") / "output.bin"
+
+
+@pytest.fixture(scope="function")
+def document():
+    content = "This is a test content"
+    content_type = "text"
+    meta = {"author": "K. Web", "source": "https://example.com"}
+    id_hash_keys = ["content"]
+    score = None
+    embedding = None
+
+    return Document(
+        content=content,
+        content_type=content_type,
+        score=score,
+        meta=meta,
+        embedding=embedding,
+        id_hash_keys=id_hash_keys,
+    )
