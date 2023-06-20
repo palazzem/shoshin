@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DEFAULT_LANGUAGE: str = "en"
     OPENAI_API_KEY: str
+    PROGRESS_BAR: bool = False
     PROMPT_MAX_TOKENS: int = 2048
 
     class Config:
