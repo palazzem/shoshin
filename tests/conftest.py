@@ -1,7 +1,9 @@
 import pytest
 import responses
 from haystack.schema import Document
+from milvus_documentstore import MilvusDocumentStore
 
+from shoshin.conf import constants
 from shoshin.conf import settings as global_settings
 
 
@@ -39,6 +41,25 @@ def ffmpeg(mocker):
 
 
 @pytest.fixture(scope="session")
+def vector():
+    """
+    Provides a JSON string containing test embeddings vectors for use in test cases.
+
+    These embeddings vectors are simulated outputs from the 'text-embedding-ada-002' model by OpenAI.
+    This fixture acts as a mock for the actual response expected from the OpenAI API.
+
+    This fixture can be paired with the `responses` library in test cases to simulate API calls
+    and responses, thereby enabling isolated testing of code that interacts with the OpenAI API.
+
+    Yields:
+        str: A JSON string containing embeddings vectors, read from a local fixture file.
+    """
+    with open("tests/fixtures/embeddings_vectors.json") as f:
+        response = f.read()
+    yield response
+
+
+@pytest.fixture(scope="session")
 def audio_file(tmp_path_factory):
     path = tmp_path_factory.mktemp("audio") / "audio.mp3"
     open(path, "w").close()
@@ -67,3 +88,13 @@ def document():
         embedding=embedding,
         id_hash_keys=id_hash_keys,
     )
+
+
+@pytest.fixture(scope="function")
+def milvus(settings):
+    ds = MilvusDocumentStore(
+        embedding_dim=constants.EMBEDDING_DIM, sql_url=settings.DATABASE_URL, progress_bar=settings.PROGRESS_BAR
+    )
+    ds.delete_all_documents()
+    yield ds
+    ds.delete_all_documents()
