@@ -1,11 +1,13 @@
 from typing import List, Optional, Union
 
+from haystack.errors import OpenAIError
 from haystack.nodes import EmbeddingRetriever
 from haystack.schema import Document
 from milvus_documentstore import MilvusDocumentStore
 
 from ..conf import constants as c
 from ..conf import settings as s
+from ..exceptions import AIError
 
 
 class DocumentStore:
@@ -53,23 +55,12 @@ class DocumentStore:
         """
         return self._retriever
 
-    def write_documents(self, documents: Union[List[dict], List[Document]]) -> None:
-        """
-        Writes documents to the underlying `MilvusDocumentStore`.
-
-        Args:
-            documents: The list of `Document` to write to the store.
-
-        Returns:
-            None.
-        """
-        self._store.write_documents(documents)
-
-    def update_embeddings(self) -> None:
-        """
-        Updates embeddings in the Document Store using the associated `EmbeddingRetriever`.
-
-        Returns:
-            None.
-        """
-        self._store.update_embeddings(self._retriever)
+    def create_embeddings(self, documents: Union[List[dict], List[Document]]) -> None:
+        try:
+            self._store.write_documents(documents)
+            self._store.update_embeddings(self._retriever)
+        except OpenAIError as e:
+            # Catch-all for OpenAI errors. This is a temporary solution until we
+            # implement different error handlers for different types of errors.
+            # Tests are covering all possible OpenAI errors.
+            raise AIError(e)

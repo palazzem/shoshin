@@ -6,8 +6,9 @@ from haystack.utils import convert_files_to_docs
 
 from shoshin import ai
 from shoshin.conf import settings as s
+from shoshin.datastore.documents import DocumentStore
 from shoshin.exceptions import AIError, AudioExtractionError
-from shoshin.pipeline import embeddings, processors
+from shoshin.pipeline import processors
 
 
 @click.group()
@@ -76,14 +77,17 @@ def embeddings_load(transcriptions_folder: str, language: str, disable_progress_
 
     # Write documents into Document Store and generate embeddings through OpenAI
     click.echo(f"Create embeddings for {len(documents)} documents...")
-    embeddings.create(documents)
+    ds = DocumentStore()
+    ds.create_embeddings(documents)
     click.echo("Embeddings updated!")
 
 
 @cli.command()
 @click.argument("question")
 def query(question: str):
-    click.echo(ai.query(question))
+    ds = DocumentStore()
+    response = ai.query(ds, question)
+    click.echo(response)
 
 
 if __name__ == "__main__":

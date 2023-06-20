@@ -1,9 +1,7 @@
 import pytest
 import responses
 from haystack.schema import Document
-from milvus_documentstore import MilvusDocumentStore
 
-from shoshin.conf import constants
 from shoshin.conf import settings as global_settings
 from shoshin.datastore.documents import DocumentStore
 
@@ -98,17 +96,15 @@ def document():
 
 
 @pytest.fixture(scope="function")
-def milvus(settings):
-    ds = MilvusDocumentStore(
-        embedding_dim=constants.EMBEDDING_DIM, sql_url=settings.DATABASE_URL, progress_bar=settings.PROGRESS_BAR
-    )
-    ds.delete_all_documents()
+def document_store():
+    ds = DocumentStore()
+    ds._store.delete_all_documents()
     yield ds
-    ds.delete_all_documents()
+    ds._store.delete_all_documents()
 
 
 @pytest.fixture(scope="function")
-def document_store(mocker):
+def document_store_mock(mocker):
     mocker.patch("shoshin.datastore.documents.MilvusDocumentStore")
     mocker.patch("shoshin.datastore.documents.EmbeddingRetriever")
     yield DocumentStore()
