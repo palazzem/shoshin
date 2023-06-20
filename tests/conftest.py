@@ -5,6 +5,7 @@ from milvus_documentstore import MilvusDocumentStore
 
 from shoshin.conf import constants
 from shoshin.conf import settings as global_settings
+from shoshin.datastore.documents import DocumentStore
 
 
 @pytest.fixture
@@ -104,3 +105,10 @@ def milvus(settings):
     ds.delete_all_documents()
     yield ds
     ds.delete_all_documents()
+
+
+@pytest.fixture(scope="function")
+def document_store(mocker):
+    mocker.patch("shoshin.datastore.documents.MilvusDocumentStore")
+    mocker.patch("shoshin.datastore.documents.EmbeddingRetriever")
+    yield DocumentStore()
