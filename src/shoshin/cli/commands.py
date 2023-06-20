@@ -2,12 +2,9 @@ import os
 from pathlib import Path
 
 import click
-from haystack.nodes import EmbeddingRetriever, PromptNode, PromptTemplate
-from haystack.pipelines import GenerativeQAPipeline
 from haystack.utils import convert_files_to_docs
-from milvus_documentstore import MilvusDocumentStore
 
-from shoshin.conf import constants as c
+from shoshin import ai
 from shoshin.conf import settings as s
 from shoshin.exceptions import AIError, AudioExtractionError
 from shoshin.pipeline import embeddings, processors
@@ -86,36 +83,7 @@ def embeddings_load(transcriptions_folder: str, language: str, disable_progress_
 @cli.command()
 @click.argument("question")
 def query(question: str):
-    ds = MilvusDocumentStore(embedding_dim=c.EMBEDDING_DIM, sql_url=s.DATABASE_URL)
-
-    # Retriever
-    retriever = EmbeddingRetriever(
-        document_store=ds,
-        embedding_model=c.EMBEDDING_MODEL,
-        api_key=s.OPENAI_API_KEY,
-    )
-
-    # Prompt
-    lfqa_prompt = PromptTemplate(
-        name="lfqa",
-        prompt_text="""Synthesize a comprehensive answer from the following text for the given question.
-                       Provide a clear and concise response that summarizes the key points and information
-                       presented in the text. Your answers must be in your own words. Always use Related
-                       text before your knowledge base. If you don't find anything in the related text,
-                       kindly mention what the course is about and that the question goes outside of the
-                       scope of the video course.
-                       \n\n Related text: {join(documents)} \n\n Question: {query} \n\n Answer:""",
-    )
-    prompt_node = PromptNode(
-        model_name_or_path=c.LLM_MODEL,
-        api_key=s.OPENAI_API_KEY,
-        default_prompt_template=lfqa_prompt,
-        max_length=s.PROMPT_MAX_TOKENS,
-    )
-    pipeline = GenerativeQAPipeline(generator=prompt_node, retriever=retriever)
-
-    output = pipeline.run(query=question, params={"Retriever": {"top_k": c.RETRIEVER_TOP_K}})
-    print(output["results"])
+    click.echo(ai.query(question))
 
 
 if __name__ == "__main__":
