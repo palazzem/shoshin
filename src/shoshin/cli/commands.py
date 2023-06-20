@@ -86,7 +86,7 @@ def embeddings_load(transcriptions_folder: str, language: str, disable_progress_
 @click.argument("question")
 def query(question: str):
     ds = DocumentStore()
-    response = ai.query(ds, question)
+    response = ai.query(ds.retriever, question)
     click.echo(response)
 
 
