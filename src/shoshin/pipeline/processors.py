@@ -17,6 +17,12 @@ def extract_audio_from_video(video_file: str, output_file: str) -> None:
 
     TODO: use `pydub` to split on silence if lenght is > 25MB (Whisper API limit)
 
+    NOTE: While this function currently takes file input and output paths, its future
+    iteration will handle input and output streams. This modification will facilitate
+    its integration into a processing pipeline where messages are read, processed, and
+    passed along. For now, due to the absence of a pipeline system, we're using file
+    paths for simplicity.
+
     Args:
         video_file (str): The path to the input video file.
         output_file (str): The path to save the output MP3 file.
@@ -37,6 +43,12 @@ def extract_audio_from_video(video_file: str, output_file: str) -> None:
 
 def transcribe_speech_to_text(audio_file: str, output_file: str) -> None:
     """Transcribes speech from an audio file using the OpenAI Whisper model.
+
+    NOTE: While this function currently takes file input and output paths, its future
+    iteration will handle input and output streams. This modification will facilitate
+    its integration into a processing pipeline where messages are read, processed, and
+    passed along. For now, due to the absence of a pipeline system, we're using file
+    paths for simplicity.
 
     Args:
         audio_file (str): The path to the input audio file.
