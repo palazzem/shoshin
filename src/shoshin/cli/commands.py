@@ -63,10 +63,12 @@ def transcribe(audio_file: str, output: str):
 
 @cli.command()
 @click.argument("transcriptions_folder")
-@click.option(
-    "--language", default=s.DEFAULT_LANGUAGE, help=f"Language of the transcriptions (default: {s.DEFAULT_LANGUAGE})"
-)
-def embeddings_load(transcriptions_folder: str, language: str):
+@click.option("--language", default=s.DEFAULT_LANGUAGE, show_default=True, help="Transcriptions language")
+@click.option("--no-progress", default=False, is_flag=True, show_default=True, help="Disable progress bar")
+def embeddings_load(transcriptions_folder: str, language: str, disable_progress_bar: bool):
+    # Update settings (progress bar)
+    s.PROGRESS_BAR = not disable_progress_bar
+
     # Convert transcriptions to Haystack documents
     click.echo("Loading transcriptions into memory...")
     all_docs = convert_files_to_docs(dir_path=transcriptions_folder)
@@ -75,13 +77,9 @@ def embeddings_load(transcriptions_folder: str, language: str):
     click.echo("Cleaning documents...")
     documents = processors.clean_documents(all_docs, language)
 
-    # Update embeddings through OpenAI embedding model
-    retriever = EmbeddingRetriever(
-        document_store=ds,
-        embedding_model=c.EMBEDDING_MODEL,
-        api_key=s.OPENAI_API_KEY,
-    )
-    ds.update_embeddings(retriever)
+    # Write documents into Document Store and generate embeddings through OpenAI
+    click.echo(f"Create embeddings for {len(documents)} documents...")
+    embeddings.create(documents)
     click.echo("Embeddings updated!")
 
 
