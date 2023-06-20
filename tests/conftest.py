@@ -14,6 +14,12 @@ def server():
         yield resp
 
 
+@pytest.fixture(scope="function", autouse=True)
+def tenacity(mocker):
+    """Mock tenacity to skip retries for mocked tests."""
+    mocker.patch("tenacity.nap.time.sleep")
+
+
 @pytest.fixture(scope="function")
 def settings():
     """
