@@ -1,11 +1,13 @@
 from typing import List
 
+from haystack.errors import OpenAIError
 from haystack.nodes import EmbeddingRetriever
 from haystack.schema import Document
 from milvus_documentstore import MilvusDocumentStore
 
 from ..conf import constants as c
 from ..conf import settings as s
+from ..exceptions import AIError
 
 
 def create(documents: List[Document]) -> None:
@@ -18,6 +20,9 @@ def create(documents: List[Document]) -> None:
 
     Args:
         documents (List[Document]): A list of Document objects to be written into the MilvusDocumentStore.
+
+    Raises:
+        AIError: If the OpenAI API request fails for any reason.
 
     Returns:
         None
@@ -36,4 +41,10 @@ def create(documents: List[Document]) -> None:
         api_key=s.OPENAI_API_KEY,
         progress_bar=s.PROGRESS_BAR,
     )
-    ds.update_embeddings(retriever)
+    try:
+        ds.update_embeddings(retriever)
+    except OpenAIError as e:
+        # Catch-all for OpenAI errors. This is a temporary solution until we
+        # implement different error handlers for different types of errors.
+        # Tests are covering all possible OpenAI errors.
+        raise AIError(e)
