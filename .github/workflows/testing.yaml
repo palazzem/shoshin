@@ -29,6 +29,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Start containers
+        run: docker compose --env-file .env.testing up -d
+
       - name: Upgrade pip and install required tools
         run: |
           pip install --upgrade pip
@@ -36,3 +39,6 @@ jobs:
 
       - name: Test with tox environments
         run: tox
+
+      - name: Stop containers
+        run: docker compose down
